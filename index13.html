@@ -1,0 +1,2479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Project Phoenix — Field Records</title>
+  <style>
+    :root {
+      --bg: #100d14;
+      --surface-1: #1a1424;
+      --surface-2: #261e32;
+      --surface-hover: #332842;
+      --border-subtle: rgba(255, 160, 90, 0.14);
+      --border-focus: rgba(255, 120, 45, 0.45);
+      --text-primary: #fff6f0;
+      --text-secondary: #b8a89c;
+      --accent: #ff6b35;
+      --accent-warm: #ff8c42;
+      --accent-gold: #ffb703;
+      --accent-glow: rgba(255, 107, 53, 0.45);
+      --phoenix-flame: linear-gradient(135deg, #ff3b30 0%, #ff6b35 50%, #ffb703 100%);
+      --cancelled: #ff5252;
+      --cancelled-bg: rgba(255, 82, 82, 0.12);
+      --visited-green: #30d158;
+      --font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      background-color: var(--bg);
+      background-image: 
+        radial-gradient(circle at 50% -5%, rgba(255, 95, 30, 0.18) 0%, rgba(255, 45, 85, 0.08) 35%, rgba(16, 13, 20, 0) 70%),
+        radial-gradient(ellipse at 15% 40%, rgba(255, 140, 0, 0.06) 0%, rgba(16, 13, 20, 0) 50%),
+        radial-gradient(ellipse at 85% 65%, rgba(255, 60, 0, 0.05) 0%, rgba(16, 13, 20, 0) 50%);
+      background-attachment: fixed;
+      color: var(--text-primary);
+      font-family: var(--font);
+      line-height: 1.45;
+      letter-spacing: -0.015em;
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    .ambient-glow {
+      position: fixed;
+      top: -20%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 1000px;
+      height: 600px;
+      background: radial-gradient(ellipse at 50% 30%, rgba(255, 107, 53, 0.22) 0%, rgba(255, 45, 85, 0.12) 40%, rgba(255, 180, 0, 0.04) 70%, rgba(0, 0, 0, 0) 90%);
+      filter: blur(50px);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .ambient-glow-secondary {
+      position: fixed;
+      bottom: -15%;
+      right: 5%;
+      width: 600px;
+      height: 500px;
+      background: radial-gradient(circle, rgba(255, 107, 53, 0.09) 0%, rgba(255, 180, 0, 0.03) 50%, rgba(0, 0, 0, 0) 75%);
+      filter: blur(60px);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    #phoenix-embers {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    header.global-nav {
+      position: sticky;
+      top: 0;
+      z-index: 90;
+      background: rgba(22, 17, 28, 0.85);
+      backdrop-filter: saturate(180%) blur(20px);
+      -webkit-backdrop-filter: saturate(180%) blur(20px);
+      border-bottom: 1px solid var(--border-subtle);
+      height: 54px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 2rem;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+
+    .phoenix-mark {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 26px;
+      height: 26px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, rgba(255, 69, 0, 0.25), rgba(255, 165, 0, 0.2));
+      border: 1px solid rgba(255, 140, 50, 0.4);
+      box-shadow: 0 0 12px rgba(255, 107, 53, 0.35);
+      font-size: 0.9rem;
+      line-height: 1;
+    }
+
+    .brand-title {
+      background: linear-gradient(90deg, #fff7f2 0%, #ffd7c2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-weight: 700;
+    }
+
+    .brand-tag {
+      font-size: 0.7rem;
+      padding: 0.15rem 0.55rem;
+      border-radius: 999px;
+      background: rgba(255, 107, 53, 0.12);
+      color: #ffa166;
+      border: 1px solid rgba(255, 107, 53, 0.25);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-weight: 600;
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+    }
+
+    .telemetry {
+      display: flex;
+      gap: 1.5rem;
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+
+    .telemetry span strong {
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+
+    .passport-pill-btn {
+      background: rgba(255, 107, 53, 0.08);
+      border: 1px solid rgba(255, 140, 60, 0.25);
+      color: var(--text-primary);
+      font-size: 0.75rem;
+      font-weight: 500;
+      padding: 0.35rem 0.85rem;
+      border-radius: 999px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      transition: all 0.25s ease;
+    }
+
+    .passport-pill-btn:hover {
+      border-color: var(--accent);
+      background: rgba(255, 107, 53, 0.18);
+      box-shadow: 0 0 14px rgba(255, 107, 53, 0.35);
+    }
+
+    .filter-shelf {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 2.5rem;
+    }
+
+    .segmented-control {
+      background: rgba(26, 20, 36, 0.85);
+      border: 1px solid var(--border-subtle);
+      border-radius: 999px;
+      padding: 4px;
+      display: flex;
+      gap: 4px;
+      overflow-x: auto;
+      max-width: 100%;
+      scrollbar-width: none;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+    }
+
+    .segmented-control::-webkit-scrollbar {
+      display: none;
+    }
+
+    .segment-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      font-family: inherit;
+      font-size: 0.85rem;
+      font-weight: 500;
+      padding: 0.45rem 1.05rem;
+      border-radius: 999px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.25s ease;
+    }
+
+    .segment-btn:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .segment-btn.active {
+      background: linear-gradient(135deg, #ff5722 0%, #ff8c00 100%);
+      color: #ffffff;
+      box-shadow: 0 2px 12px rgba(255, 87, 34, 0.45);
+      border: 1px solid rgba(255, 190, 80, 0.4);
+      font-weight: 600;
+    }
+
+    .timeline-rail-wrapper {
+      background: linear-gradient(180deg, rgba(30, 23, 40, 0.92) 0%, rgba(22, 17, 30, 0.95) 100%);
+      border: 1px solid var(--border-subtle);
+      border-radius: 24px;
+      padding: 2.25rem 2rem 2.25rem;
+      margin-bottom: 3.5rem;
+      position: relative;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35), 0 0 30px rgba(255, 107, 53, 0.05);
+    }
+
+    .timeline-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+
+    .timeline-header h3 {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-secondary);
+      font-weight: 600;
+    }
+
+    .timeline-meta-label {
+      font-size: 0.8rem;
+      color: var(--accent-warm);
+      font-weight: 600;
+    }
+
+    .timeline-scrubber {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 1rem;
+      min-height: 110px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .timeline-scrubber::-webkit-scrollbar {
+      display: none;
+    }
+
+    .timeline-track {
+      position: absolute;
+      top: 38px;
+      left: 2rem;
+      right: 2rem;
+      height: 3px;
+      border-radius: 2px;
+      background: rgba(255, 160, 90, 0.15);
+      z-index: 1;
+    }
+
+    .timeline-track-fill {
+      position: absolute;
+      top: 38px;
+      left: 2rem;
+      height: 3px;
+      border-radius: 2px;
+      width: 0%;
+      background: linear-gradient(90deg, #ff3b30 0%, #ff7700 50%, #ffc107 100%);
+      box-shadow: 0 0 14px rgba(255, 115, 0, 0.7), 0 0 25px rgba(255, 70, 0, 0.35);
+      z-index: 1;
+      transition: width 0.35s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+
+    .milestone-node {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: pointer;
+      background: none;
+      border: none;
+      outline: none;
+      padding: 0 0.5rem;
+      flex-shrink: 0;
+    }
+
+    .milestone-flag {
+      font-size: 1.15rem;
+      line-height: 1;
+      margin-bottom: 0.35rem;
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+      transition: transform 0.2s ease;
+    }
+
+    .milestone-node:hover .milestone-flag {
+      transform: scale(1.25);
+    }
+
+    .milestone-dot {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: var(--surface-2);
+      border: 2px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.25s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+
+    .milestone-dot::after {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--text-secondary);
+      transition: all 0.25s ease;
+    }
+
+    .milestone-node.is-cancelled .milestone-dot {
+      border-color: rgba(255, 82, 82, 0.4);
+    }
+
+    .milestone-node.is-cancelled .milestone-dot::after {
+      background: var(--cancelled);
+    }
+
+    .milestone-node:hover .milestone-dot {
+      border-color: var(--accent);
+      transform: scale(1.15);
+      box-shadow: 0 0 12px var(--accent-glow);
+    }
+
+    .milestone-node.active .milestone-dot {
+      background: #171120;
+      border-color: #ffaa00;
+      box-shadow: 0 0 16px rgba(255, 120, 40, 0.8), 0 0 28px rgba(255, 60, 0, 0.4);
+      transform: scale(1.2);
+    }
+
+    .milestone-node.active.is-cancelled .milestone-dot {
+      border-color: var(--cancelled);
+      box-shadow: 0 0 14px rgba(255, 82, 82, 0.5);
+    }
+
+    .milestone-node.active .milestone-dot::after {
+      background: linear-gradient(135deg, #ff4500, #ffb700);
+      width: 8px;
+      height: 8px;
+    }
+
+    .milestone-node.active.is-cancelled .milestone-dot::after {
+      background: var(--cancelled);
+    }
+
+    .milestone-info {
+      margin-top: 0.65rem;
+      text-align: center;
+    }
+
+    .milestone-date {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .milestone-loc {
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: var(--text-primary);
+      margin-top: 2px;
+      max-width: 110px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .milestone-node.active .milestone-date {
+      color: var(--accent-warm);
+      font-weight: 700;
+    }
+
+    .milestone-node.active.is-cancelled .milestone-date {
+      color: var(--cancelled);
+    }
+
+    .trip-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 1.5rem;
+      transition: opacity 0.2s ease;
+    }
+
+    .trip-card {
+      background: linear-gradient(180deg, rgba(34, 26, 44, 0.88) 0%, rgba(24, 18, 32, 0.94) 100%);
+      border: 1px solid var(--border-subtle);
+      border-radius: 24px;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 280px;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+      transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1), 
+                  border-color 0.3s ease, 
+                  background-color 0.3s ease,
+                  box-shadow 0.3s ease;
+    }
+
+    .trip-card:hover {
+      transform: translateY(-4px);
+      background: linear-gradient(180deg, rgba(44, 34, 58, 0.95) 0%, rgba(30, 23, 40, 0.98) 100%);
+      border-color: var(--border-focus);
+      box-shadow: 0 14px 34px rgba(0, 0, 0, 0.4), 0 0 25px rgba(255, 107, 53, 0.12);
+    }
+
+    .trip-card.focused {
+      border-color: var(--accent-warm);
+      box-shadow: 0 0 30px rgba(255, 107, 53, 0.35), inset 0 0 16px rgba(255, 107, 53, 0.08);
+    }
+
+    .trip-card.is-cancelled {
+      border-style: dashed;
+      border-color: rgba(255, 82, 82, 0.3);
+      background: linear-gradient(180deg, rgba(255, 82, 82, 0.04) 0%, rgba(24, 18, 32, 0.94) 100%);
+    }
+
+    .trip-card.is-cancelled:hover {
+      border-color: var(--cancelled);
+      box-shadow: 0 14px 34px rgba(0, 0, 0, 0.4), 0 0 25px rgba(255, 82, 82, 0.15);
+    }
+
+    .trip-card.is-cancelled.focused {
+      border-color: var(--cancelled);
+      box-shadow: 0 0 25px rgba(255, 82, 82, 0.25);
+    }
+
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 1rem;
+    }
+
+    .card-meta {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent-warm);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .is-cancelled .card-meta {
+      color: var(--cancelled);
+    }
+
+    .status-badge {
+      font-size: 0.7rem;
+      font-weight: 500;
+      padding: 0.2rem 0.6rem;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-secondary);
+      border: 1px solid var(--border-subtle);
+    }
+
+    .status-badge.cancelled-badge {
+      color: var(--cancelled);
+      background: var(--cancelled-bg);
+      border-color: rgba(255, 82, 82, 0.3);
+      font-weight: 600;
+    }
+
+    .trip-card h2 {
+      font-size: 1.55rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .card-media {
+      width: 100%;
+      height: 190px;
+      border-radius: 16px;
+      overflow: hidden;
+      margin: 1.25rem 0;
+      background: var(--surface-2);
+      border: 1px solid var(--border-subtle);
+    }
+
+    .card-media img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+
+    .trip-card:hover .card-media img {
+      transform: scale(1.04);
+    }
+
+    .trip-card p {
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    .card-footer {
+      margin-top: 1.75rem;
+      padding-top: 1.25rem;
+      border-top: 1px solid var(--border-subtle);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .tag-cluster {
+      display: flex;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+    }
+
+    .tag-cluster span {
+      font-size: 0.75rem;
+      background: rgba(255, 140, 60, 0.08);
+      border: 1px solid rgba(255, 140, 60, 0.16);
+      padding: 0.2rem 0.55rem;
+      border-radius: 6px;
+      color: #dfd0c7;
+    }
+
+    .card-action {
+      font-size: 0.8rem;
+      color: var(--accent-warm);
+      font-weight: 600;
+      transition: color 0.2s ease;
+    }
+
+    .trip-card:hover .card-action {
+      color: var(--accent-gold);
+    }
+
+    .is-cancelled .card-action {
+      color: var(--cancelled);
+    }
+
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(10, 7, 14, 0.82);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+
+    .modal-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-sheet {
+      background: linear-gradient(180deg, #251d30 0%, #191322 100%);
+      border: 1px solid var(--border-focus);
+      width: 100%;
+      max-width: 600px;
+      border-radius: 28px;
+      padding: 2.5rem;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.85), 0 0 50px rgba(255, 107, 53, 0.15);
+      transform: scale(0.96);
+      transition: transform 0.25s cubic-bezier(0.25, 1, 0.5, 1);
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-overlay.open .modal-sheet {
+      transform: scale(1);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 1.25rem;
+    }
+
+    .modal-header h3 {
+      font-size: 1.8rem;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .close-btn {
+      background: var(--surface-2);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      transition: all 0.2s ease;
+    }
+
+    .close-btn:hover {
+      background: rgba(255, 107, 53, 0.2);
+      border-color: var(--accent);
+      color: var(--text-primary);
+    }
+
+    .modal-media {
+      width: 100%;
+      height: 240px;
+      border-radius: 18px;
+      overflow: hidden;
+      margin-bottom: 1.5rem;
+      background: var(--surface-2);
+      border: 1px solid var(--border-subtle);
+    }
+
+    .modal-media img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .modal-body {
+      color: var(--text-secondary);
+      font-size: 1rem;
+      line-height: 1.6;
+    }
+
+    .itinerary-list {
+      list-style: none;
+      margin-top: 1.5rem;
+    }
+
+    .itinerary-list li {
+      padding: 0.75rem 0;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      gap: 1rem;
+    }
+
+    .itinerary-list li:last-child {
+      border-bottom: none;
+    }
+
+    .itinerary-day {
+      color: var(--accent-warm);
+      font-weight: 700;
+      font-size: 0.8rem;
+      width: 75px;
+      flex-shrink: 0;
+      text-transform: uppercase;
+    }
+
+    .itinerary-day.cancelled-tag {
+      color: var(--cancelled);
+    }
+
+    .drawer-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(10, 7, 14, 0.75);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      z-index: 110;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .drawer-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .drawer {
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: 100%;
+      max-width: 420px;
+      background: #1b1424;
+      border-left: 1px solid var(--border-focus);
+      padding: 2rem 1.75rem;
+      overflow-y: auto;
+      transform: translateX(100%);
+      transition: transform 0.35s cubic-bezier(0.25, 1, 0.5, 1);
+      z-index: 120;
+      box-shadow: -12px 0 40px rgba(0, 0, 0, 0.6);
+    }
+
+    .drawer-overlay.open .drawer {
+      transform: translateX(0);
+    }
+
+    .drawer-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .drawer-header h3 {
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+
+    .drawer-pills {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+
+    .drawer-pill-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem 1rem;
+      background: var(--surface-2);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      transition: border-color 0.2s ease;
+    }
+
+    .drawer-pill-item.visited {
+      border-color: rgba(48, 209, 88, 0.25);
+    }
+
+    .drawer-pill-item.not-visited {
+      opacity: 0.6;
+      border-style: dashed;
+    }
+
+    @media screen and (max-width: 768px) {
+      .hero h1 {
+        font-size: 2.6rem;
+      }
+      .telemetry {
+        display: none;
+      }
+      .timeline-scrubber {
+        justify-content: flex-start;
+        gap: 2rem;
+        padding-bottom: 0.5rem;
+      }
+      .timeline-track, .timeline-track-fill {
+        display: none;
+      }
+      .modal-sheet {
+        padding: 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="ambient-glow"></div>
+  <div class="ambient-glow-secondary"></div>
+  <canvas id="phoenix-embers"></canvas>
+
+  <header class="global-nav">
+    <div class="brand">
+      <span class="phoenix-mark">🔥</span>
+      <span class="brand-title">Project Phoenix</span>
+      <span class="brand-tag">Records</span>
+    </div>
+    <div class="nav-actions">
+      <div class="telemetry">
+        <span>Logged: <strong id="trip-count">0</strong></span>
+        <span>Base: <strong>Oceania & APAC</strong></span>
+      </div>
+      <button class="passport-pill-btn" id="open-drawer">
+        <span>🌐</span>
+        <span id="country-ratio">16 Explored</span>
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <span class="hero-eyebrow">✦ PROJECT PHOENIX ARCHIVAL</span>
+      <h1>Every stop.<br />Engineered in sequence.</h1>
+      <p>Click any milestone along the chronological rail to inspect that expedition.</p>
+    </section>
+
+    <div class="filter-shelf">
+      <div class="segmented-control" role="tablist">
+        <button class="segment-btn active" data-year="all">All</button>
+        <button class="segment-btn" data-year="2026">2026</button>
+        <button class="segment-btn" data-year="2025">2025</button>
+        <button class="segment-btn" data-year="2024">2024</button>
+        <button class="segment-btn" data-year="2023">2023</button>
+        <button class="segment-btn" data-year="2022">2022</button>
+        <button class="segment-btn" data-year="2021">2021</button>
+        <button class="segment-btn" data-year="2020">2020</button>
+        <button class="segment-btn" data-year="2019">2019</button>
+        <button class="segment-btn" data-year="2018">2018</button>
+        <button class="segment-btn" data-year="2017">2017</button>
+        <button class="segment-btn" data-year="2016">2016</button>
+        <button class="segment-btn" data-year="2015">2015</button>
+        <button class="segment-btn" data-year="2014">2014</button>
+        <button class="segment-btn" data-year="2013">2013</button>
+        <button class="segment-btn" data-year="2012">2012</button>
+        <button class="segment-btn" data-year="2011">2011</button>
+        <button class="segment-btn" data-year="2010">2010</button>
+      </div>
+    </div>
+
+    <section class="timeline-rail-wrapper">
+      <div class="timeline-header">
+        <h3 id="timeline-heading">All Journeys Timeline</h3>
+        <span class="timeline-meta-label" id="timeline-meta">Viewing full chronology</span>
+      </div>
+      <div class="timeline-scrubber" id="timeline-scrubber">
+        <div class="timeline-track"></div>
+        <div class="timeline-track-fill" id="track-fill"></div>
+        <div id="nodes-container" style="display: contents;"></div>
+      </div>
+    </section>
+
+    <section class="trip-grid" id="grid"></section>
+  </main>
+
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <div>
+          <span class="card-meta" id="modal-meta"></span>
+          <h3 id="modal-title"></h3>
+        </div>
+        <button class="close-btn" id="modal-close">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-media" id="modal-image-wrap" style="display: none;">
+          <img id="modal-image" src="" alt="" />
+        </div>
+        <p id="modal-desc"></p>
+        <ul class="itinerary-list" id="modal-itinerary"></ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="drawer-overlay" id="drawer-overlay">
+    <div class="drawer">
+      <div class="drawer-header">
+        <div>
+          <h3>Passport Territories</h3>
+          <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 2px;">Explored vs. wishlist targets</p>
+        </div>
+        <button class="close-btn" id="close-drawer">✕</button>
+      </div>
+      <div class="drawer-pills" id="drawer-list"></div>
+    </div>
+  </div>
+
+  <script>
+    // Territories Catalog
+    const territories = [
+      { name: "Australia", flag: "🇦🇺", visited: true },
+      { name: "Philippines", flag: "🇵🇭", visited: true },
+      { name: "Taiwan", flag: "🇹🇼", visited: true },
+      { name: "Japan", flag: "🇯🇵", visited: true },
+      { name: "United States", flag: "🇺🇸", visited: true },
+      { name: "New Zealand", flag: "🇳🇿", visited: true },
+      { name: "Vietnam", flag: "🇻🇳", visited: true },
+      { name: "Thailand", flag: "🇹🇭", visited: true },
+      { name: "Indonesia", flag: "🇮🇩", visited: true },
+      { name: "Cambodia", flag: "🇰🇭", visited: true },
+      { name: "Singapore", flag: "🇸🇬", visited: true },
+      { name: "Malaysia", flag: "🇲🇾", visited: true },
+      { name: "South Korea", flag: "🇰🇷", visited: true },
+      { name: "Fiji", flag: "🇫🇯", visited: true },
+      { name: "Hong Kong", flag: "🇭🇰", visited: true },
+      { name: "Macau", flag: "🇲🇴", visited: true },
+      { name: "France", flag: "🇫🇷", visited: false },
+      { name: "Switzerland", flag: "🇨🇭", visited: false },
+      { name: "Iceland", flag: "🇮🇸", visited: false },
+      { name: "Norway", flag: "🇳🇴", visited: false }
+    ];
+
+    // Master Chronological Travel Dataset (2010 - 2026)
+    const trips = [
+      /* --- 2010 --- */
+      {
+        id: "boracay-2010",
+        year: "2010",
+        month: "October",
+        title: "Boracay Coast",
+        location: "Aklan, Philippines",
+        flag: "🇵🇭",
+        status: "Completed",
+        isCancelled: false,
+        image: null,
+        summary: "Powder white sands, sunset coastlines, and beach pathways along Station 1 to 3.",
+        tags: ["White Beach", "Visayas", "Coastal Haven"],
+        itinerary: [{ day: "Phase 1", detail: "White Beach sunset walk and coastal sailing." }]
+      },
+      {
+        id: "taipei-2010",
+        year: "2010",
+        month: "December",
+        title: "Taipei Metropolis",
+        location: "Taiwan",
+        flag: "🇹🇼",
+        status: "Completed",
+        isCancelled: false,
+        image: null,
+        summary: "Winter night markets, Taipei 101 skyline vistas, and historic district walking circuits.",
+        tags: ["Taipei 101", "Shilin", "Night Markets"],
+        itinerary: [{ day: "Phase 1", detail: "Taipei 101 observation deck, night market food avenues, and district MRT loops." }]
+      },
+
+      /* --- 2011 --- */
+      {
+        id: "sydney-2011",
+        year: "2011",
+        month: "February",
+        title: "Sydney Harbour Summer",
+        location: "New South Wales, Australia",
+        flag: "🇦🇺",
+        status: "Completed",
+        isCancelled: false,
+        image: null,
+        summary: "Summer harbour walks, Circular Quay ferryways, and iconic Opera House waterfront routes.",
+        tags: ["Circular Quay", "Harbour Summer", "Sydney"],
+        itinerary: [{ day: "Phase 1", detail: "Circular Quay, The Rocks, and harbour foreshore trails." }]
+      },
+      {
+        id: "boracay-2011",
+        year: "2011",
+        month: "April",
+        title: "Boracay Island",
+        location: "Aklan, Philippines",
+        flag: "🇵🇭",
+        status: "Completed",
+        isCancelled: false,
+        image: null,
+        summary: "Warm summer waters, paraw sunset cruises, and tranquil northern cove swims.",
+        tags: ["White Beach", "Summer Escapes", "Island Way"],
+        itinerary: [{ day: "Phase 1", detail: "White Beach water activities and evening coastal dining." }]
+      },
+      {
+        id: "tagaytay-2011",
+        year: "2011",
+        month: "June",
+        title: "Tagaytay Ridge",
+        location: "Cavite, Philippines",
+        flag: "🇵🇭",
+        status: "Completed",
+        isCancelled: false,
+        image: null,
+        summary: "Cool mountain breezes, panoramic Taal Lake caldera views, and ridge countryside walks.",
+        tags: ["Taal Volcano", "Caldera Ridge", "Cool Highlands"],
+        itinerary: [{ day: "Phase 1", detail: "Ridge view lookouts, Taal Lake caldera vistas, and local dining." }]
+      },
+
+      /* --- 2012 --- */
+      {
+        id: "sg-2012",
+        year: "2012",
+        month: "February",
+        title: "Singapore City Walk",
+        location: "Singapore",
+        flag: "🇸🇬",
+        status: "Completed",
+        isCancelled: false,
+        image: null,
+        summary: "Urban riverside strolls along Clark Quay, Orchard Road retail lanes, and Marina Bay.",
+        tags: ["Marina Bay", "Clarke Quay", "Urban Hub"],
+        itinerary: [{ day: "Phase 1", detail: "Marina Bay circuit, Merlion Park, and riverside dining." }]
+      },
+      {
+        id: "anilao-2012",
+        year: "2012",
+        month: "April",
+        title: "Anilao Dive Coast",
+        location: "Batangas, Philippines",
+        flag: "🇵🇭",
+        status: "Completed",
+        isCancelled: false,
+        image: null,
+        summary: "Coral reefs, seaside pebble shores, and macro marine waters along Balayan Bay.",
+        tags: ["Marine Sanctuary", "Balayan Bay", "Coastline"],
+        itinerary: [{ day: "Phase 1", detail: "Coastal snorkeling, coral garden views, and boat rides." }]
+      },
+      {
+        id: "davao-2012",
+        year: "2012",
+        month: "May",
+        title: "Davao Gulf",
+        location: "Davao del Sur, Philippines",
+        flag: "🇵🇭",
+        status: "Completed",
+        isCancelled: false,
+        image: null,
+        summary: "Mount Apo foothills, Samal Island beach crossings, and tropical fruit trails.",
+        tags: ["Samal Island", "Mount Apo Foothills", "Mindanao"],
+        itinerary: [{ day: "Phase 1", detail: "Samal Island beach resort crossing and city landmark circuits." }]
+      },
+      {
+        id: "el-nido-2012",
+        year: "2012",
+        month: "June",
+        title: "El Nido Archipelago",
+        location: "Palawan, Philippines",
+        flag: "🇵🇭",
+        status: "Completed",
+        isCancelled: false,
+        image: null,
+        summary: "Limestone karsts rising from clear turquoise waters, hidden lagoons, and Bacuit Bay coves.",
+        tags: ["Bacuit Bay", "Hidden Lagoon", "Karst Cliffs"],
+        itinerary: [{ day: "Phase 1", detail: "Bacuit Bay island hopping and limestone lagoon kayaking." }]
+      },
+      {
+        id: "syd-canberra-2012",
+        year: "2012",
+        month: "August–September",
+        title: "Sydney & Canberra",
+        location: "NSW & ACT, Australia",
+        flag: "🇦🇺",
+        status: "Completed",
+        isCancelled: false,
+        image: null,
+        summary: "Late winter coastal walks in Sydney followed by national cultural corridors in Canberra.",
+        tags: ["Capital Corridor", "Lake Burley Griffin", "Harbour Line"],
+        itinerary: [
+          { day: "Phase 1", detail: "Sydney Harbour foreshore paths and botanic gardens." },
+          { day: "Phase 2", detail: "Canberra parliamentary triangle, Lake Burley Griffin, and galleries." }
+        ]
+      },
+      {
+        id: "misibis-2012",
+        year: "2012",
+        month: "November",
+        title: "Misibis Bay",
+        location: "Albay, Philippines",
+        flag: "🇵🇭",
+        status: "Completed",
+        isCancelled: false,
+        image: null,
+        summary: "Cagraray Island luxury resort, volcanic black sand beaches, and distant Mayon Volcano views.",
+        tags: ["Cagraray Island", "Mayon Horizon", "Bicol Luxury"],
+        itinerary: [{ day: "Phase 1", detail: "Eco-energy park trails, water sports, and Mayon Volcano horizon views." }]
+      },
+
+      /* --- 2013 --- */
+      {
+        id: "bohol-cebu-2013",
+        year: "2013",
+        month: "January",
+        title: "Bohol & Cebu Circuit",
+        location: "Central Visayas, Philippines",
+        flag: "🇵🇭",
+        status: "Completed",
+        isCancelled: false,
+        image: null,
+        summary: "Chocolate Hills geological formations, Loboc River cruises, and Cebu heritage landmarks.",
+        tags: ["Chocolate Hills", "Loboc River", "Central Visayas"],
+        itinerary: [
+          { day: "Phase 1", detail: "Chocolate Hills overlook, tarsier sanctuary, and Loboc riverboat cruise." },
+          { day: "Phase 2", detail: "Ferry crossing to Cebu City historic sites and coastal avenues." }
+        ]
+      },
+      {
+        id: "boracay-2013-1",
+        year: "2013",
+        month: "March",
+        title: "Boracay Spring",
+        location: "Aklan, Philippines",
+        flag: "🇵🇭",
+        status: "Completed",
+        isCancelled: false,
+        image: null,
+        summary: "Early spring getaway enjoying clear waters, beachfront strolling, and tropical dining.",
+        tags: ["White Beach", "Puka Shell", "Spring Break"],
+        itinerary: [{ day: "Phase 1", detail: "Station 1 swimming stretches and island sunset cruises." }]
+      },
+      {
+        id: "sydney-2013",
+        year: "2013",
+        month: "March",
+        title: "Sydney Autumn",
+        location: "New South Wales, Australia",
+        flag: "🇦🇺",
+        status: "Completed",
+        isCancelled: false,
+        image: null,
+        summary: "Brisk autumn seaside strolls along Manly beach and Darling Harbour waterfront promenades.",
+        tags: ["Manly Ferry", "Darling Harbour", "Ocean Promenade"],
+        itinerary: [{ day: "Phase 1", detail: "Manly scenic ferry run and coastal cliff track walks." }]
+      },
+      {
+        id: "davao-2013-1",
+        year: "2013",
+        month: "May",
+        title: "Davao & Samal Escape I",
+        location: "Davao del Sur, Philippines",
+        flag: "🇵🇭",
+        status: "Completed",
+        isCancelled: false,
+        image: null,
+        summary: "Mid-year tropical break with boat transfers to Samal Island beaches and mountain lookouts.",
+        tags: ["Samal Coast", "Tropical Waters", "Southern Escapes"],
+        itinerary: [{ day: "Phase 1", detail: "Samal Island beach resort stay and water activities." }]
+      },
+      {
+        id: "davao-2013-2",
+        year: "2013",
+        month: "August",
+        title: "Davao Kadayawan Return II",
+        location: "Davao del Sur, Philippines",
+        flag: "🇵🇭",
+        status: "Completed",
+        isCancelled: false,
+        image: null,
+        summary: "Late-winter festival season journeys, cultural markets, and highland countryside vistas.",
+        tags: ["Kadayawan Season", "Mindanao Trails", "Highland Air"],
+        itinerary: [{ day: "Phase 1", detail: "City cultural avenues, culinary trails, and local farm tours." }]
+      },
+      {
+        id: "bacolod-guimaras-2013",
+        year: "2013",
+        month: "October",
+        title: "Bacolod & Guimaras",
+        location: "Western Visayas, Philippines",
+        flag: "🇵🇭",
+        status: "Completed",
+        isCancelled: false,
+        image: null,
+        summary: "The Ruins mansion heritage, MassKara festive streets, and sweet mango orchards of Guimaras.",
+        tags: ["The Ruins", "Guimaras Mangoes", "Sugarlandia"],
+        itinerary: [
+          { day: "Phase 1", detail: "The Ruins historic mansion, chicken inasal food trail, and Bacolod sights." },
+          { day: "Phase 2", detail: "Pumpboat ferry to Guimaras Island beaches and mango plantations." }
+        ]
+      },
+      {
+        id: "boracay-2013-2",
+        year: "2013",
+        month: "November",
+        title: "Boracay Year-End",
+        location: "Aklan, Philippines",
+        flag: "🇵🇭",
+        status: "Completed",
+        isCancelled: false,
+        image: null,
+        summary: "Year-end coastal retreat enjoying serene sunsets, calm sands, and cool trade winds.",
+        tags: ["White Beach", "Year-End Calm", "Sunset Sail"],
+        itinerary: [{ day: "Phase 1", detail: "White Beach sunset paraw sailing and shoreline dining." }]
+      },
+
+      /* --- 2014 --- */
+      {
+        id: "cebu-2014",
+        year: "2014",
+        month: "January",
+        title: "Cebu Island",
+        location: "Central Visayas, Philippines",
+        flag: "🇵🇭",
+        status: "Completed",
+        isCancelled: false,
+        image: null,
+        summary: "Heritage cathedrals, coastal marine corridors, and Central Visayas island passage.",
+        tags: ["Cebu City", "Mactan", "Central Visayas"],
+        itinerary: [{ day: "Phase 1", detail: "Basilica Minore del Santo Niño, Fort San Pedro, and Mactan coastal avenues." }]
+      },
+      {
+        id: "hk-macau-2014",
+        year: "2014",
+        month: "March",
+        title: "Hong Kong & Macau",
+        location: "HK & Macau",
+        flag: "🇭🇰",
+        status: "Completed",
+        isCancelled: false,
+        image: null,
+        summary: "Victoria Harbour skyline ferries, central tramway circuits, and the Cotai Strip.",
+        tags: ["Victoria Peak", "Macau Peninsula", "Harbour Line"],
+        itinerary: [
+          { day: "Phase 1", detail: "Hong Kong Island high-density urban streetscapes and Victoria Peak tram." },
+          { day: "Phase 2", detail: "TurboJET ferry crossing to Macau heritage center and Cotai." }
+        ]
+      },
+      {
+        id: "sg-malaysia-2014",
+        year: "2014",
+        month: "August",
+        title: "Singapore & Malaysia",
+        location: "Singapore / Malaysia",
+        flag: "🇸🇬",
+        status: "Completed",
+        isCancelled: false,
+        image: null,
+        summary: "Marina Bay waterfront, Gardens by the Bay, and overland cross-border transit to Malaysia.",
+        tags: ["Marina Bay", "Cross-Border", "Kuala Lumpur"],
+        itinerary: [
+          { day: "Phase 1", detail: "Marina Bay Sands waterfront, Gardens by the Bay, and Singapore botanic loops." },
+          { day: "Phase 2", detail: "Causeway cross-border link into Malaysia cultural districts." }
+        ]
+      },
+      {
+        id: "korea-2014",
+        year: "2014",
+        month: "November",
+        title: "Seoul & South Korea",
+        location: "South Korea",
+        flag: "🇰🇷",
+        status: "Completed",
+        isCancelled: false,
+        image: null,
+        summary: "Late autumn palace walks, Myeongdong street avenues, and Seoul mountain fortress perimeters.",
+        tags: ["Gyeongbokgung", "Myeongdong", "N Seoul Tower"],
+        itinerary: [{ day: "Phase 1", detail: "Gyeongbokgung Palace courtyard, Bukchon Hanok village paths, and Namsan." }]
+      },
+
+      /* --- 2015 --- */
+      {
+        id: "aus-2015",
+        year: "2015",
+        month: "March",
+        title: "Australia Expedition",
+        location: "Australia",
+        flag: "🇦🇺",
+        status: "Completed",
+        isCancelled: false,
+        image: null,
+        summary: "Harbour views, urban discovery corridors, and coastal headland circuits.",
+        tags: ["East Coast", "Urban Hubs", "Harbour Line"],
+        itinerary: [{ day: "Phase 1", detail: "Coastal promenade loops, city architecture, and botanical gardens." }]
+      },
+      {
+        id: "coron-2015",
+        year: "2015",
+        month: "Mid 2015",
+        title: "Coron, Palawan",
+        location: "Palawan, Philippines",
+        flag: "🇵🇭",
+        status: "Cancelled",
+        isCancelled: true,
+        image: null,
+        summary: "Kayangan Lake and shipwreck dive routes cancelled due to weather and scheduling disruptions.",
+        tags: ["Weather Disruption", "Calamian Islands", "Suspended"],
+        itinerary: [{ day: "Cancelled", detail: "Island hopping and lagoon boat circuits called off." }]
+      },
+      {
+        id: "phuket-sg-2015",
+        year: "2015",
+        month: "August",
+        title: "Phuket & Singapore",
+        location: "Thailand / Singapore",
+        flag: "🇹🇭",
+        status: "Completed",
+        isCancelled: false,
+        image: null,
+        summary: "Andaman Sea coastal waters, Phang Nga Bay islands, and Singapore garden transits.",
+        tags: ["Andaman Sea", "Phuket Coast", "Changi Corridor"],
+        itinerary: [
+          { day: "Phase 1", detail: "Phuket Old Town heritage shophouses and Andaman island water crossings." },
+          { day: "Phase 2", detail: "Singapore city transit and evening waterfront walks." }
+        ]
+      },
+
+      /* --- 2016 --- */
+      {
+        id: "aus-2016",
+        year: "2016",
+        month: "February",
+        title: "Australia Summer",
+        location: "Australia",
+        flag: "🇦🇺",
+        status: "Completed",
+        isCancelled: false,
+        image: null,
+        summary: "Late summer coastal stretches, urban gallery precincts, and oceanfront avenues.",
+        tags: ["Pacific Shores", "Harbour Front", "Urban Routes"],
+        itinerary: [{ day: "Phase 1", detail: "Ocean boardwalks, city avenues, and national park edge walks." }]
+      },
+      {
+        id: "jpn-2016",
+        year: "2016",
+        month: "July",
+        title: "Japan Summer Traverse",
+        location: "Japan",
+        flag: "🇯🇵",
+        status: "Completed",
+        isCancelled: false,
+        image: null,
+        summary: "Summer lantern festival avenues, historic temple perimeters, and Shinkansen bullet rail connections.",
+        tags: ["Shinkansen", "Kanto Region", "Summer Matsuri"],
+        itinerary: [{ day: "Phase 1", detail: "Tokyo metropolis districts, traditional shrines, and transit arteries." }]
+      },
+      {
+        id: "syd-2016",
+        year: "2016",
+        month: "September",
+        title: "Sydney Spring Harbor",
+        location: "New South Wales, Australia",
+        flag: "🇦🇺",
+        status: "Completed",
+        isCancelled: false,
+        image: null,
+        summary: "Sydney Harbour foreshore loops, Circular Quay ferries, and coastal spring headlands.",
+        tags: ["Circular Quay", "Harbour Bridge", "Coastal Cliffs"],
+        itinerary: [{ day: "Phase 1", detail: "Harbour foreshore walking trails, ferry routes, and beach headlands." }]
+      },
+
+      /* --- 2017 --- */
+      {
+        id: "bali-2017",
+        year: "2017",
+        month: "October",
+        title: "Bali & Nusa Archipelago",
+        location: "Indonesia",
+        flag: "🇮🇩",
+        status: "Completed",
+        isCancelled: false,
+        image: null,
+        summary: "Ubud terraced rice paddies, cliffside sea temples at Uluwatu, and Indian Ocean sunset breaks.",
+        tags: ["Ubud", "Uluwatu", "Rice Terraces"],
+        itinerary: [
+          { day: "Phase 1", detail: "Ubud highland jungle trails, art villages, and Tegallalang terraces." },
+          { day: "Phase 2", detail: "Uluwatu cliff coastal temples and Jimbaran Bay sunset shores." }
+        ]
+      },
+      {
+        id: "boracay-2017",
+        year: "2017",
+        month: "October",
+        title: "Boracay Coast",
+        location: "Aklan, Philippines",
+        flag: "🇵🇭",
+        status: "Completed",
+        isCancelled: false,
+        image: null,
+        summary: "White Beach powder sands, sunset paraw sailboats, and northern cove marine explorations.",
+        tags: ["White Beach", "Paraw", "Visayas Coast"],
+        itinerary: [{ day: "Phase 1", detail: "White Beach shore circuits and crystal clear lagoon swimming routes." }]
+      },
+      {
+        id: "cambodia-2017",
+        year: "2017",
+        month: "October",
+        title: "Siem Reap & Angkor",
+        location: "Cambodia",
+        flag: "🇰🇭",
+        status: "Completed",
+        isCancelled: false,
+        image: null,
+        summary: "Ancient Khmer temple complexes, sunrise over Angkor Wat, and root-entangled stone ruins of Ta Prohm.",
+        tags: ["Angkor Wat", "Bayon", "Ta Prohm"],
+        itinerary: [{ day: "Phase 1", detail: "Angkor Wat grand circuit, Bayon stone face towers, and Ta Prohm." }]
+      },
+      {
+        id: "usa-2017",
+        year: "2017",
+        month: "November",
+        title: "United States Transcontinental",
+        location: "United States",
+        flag: "🇺🇸",
+        status: "Completed",
+        isCancelled: false,
+        image: null,
+        summary: "Cross-country urban skylines, national landmarks, and late autumn metropolitan corridors.",
+        tags: ["North America", "Metropolis", "Landmarks"],
+        itinerary: [{ day: "Phase 1", detail: "Metropolitan landmark loops, historic downtown circuits, and museum corridors." }]
+      },
+
+      /* --- 2018 --- */
+      {
+        id: "caramoan-2018",
+        year: "2018",
+        month: "February",
+        title: "Tugawe Cove & Caramoan",
+        location: "Camarines Sur, Philippines",
+        flag: "🇵🇭",
+        status: "Completed",
+        isCancelled: false,
+        image: null,
+        summary: "Rugged limestone karst islets, secluded coves, and Pacific coast marine sanctuaries in Bicol.",
+        tags: ["Tugawe Cove", "Caramoan Karsts", "Bicol Peninsula"],
+        itinerary: [{ day: "Phase 1", detail: "Caramoan secluded island hopping, limestone lagoons, and lighthouse trails." }]
+      },
+      {
+        id: "syd-mel-2018",
+        year: "2018",
+        month: "March",
+        title: "Sydney to Melbourne Circuit",
+        location: "Australia",
+        flag: "🇦🇺",
+        status: "Completed",
+        isCancelled: false,
+        image: null,
+        summary: "Interstate corridor linking Sydney coastal harbor tracks with Melbourne laneway coffee scenes.",
+        tags: ["Interstate", "Laneways", "Harbour Line"],
+        itinerary: [
+          { day: "Phase 1", detail: "Sydney foreshore paths and ferry connections." },
+          { day: "Phase 2", detail: "Melbourne Yarra river circuits and inner-urban arts avenues." }
+        ]
+      },
+      {
+        id: "paris-2018",
+        year: "2018",
+        month: "Mid 2018",
+        title: "Paris & European Passage",
+        location: "France",
+        flag: "🇫🇷",
+        status: "Cancelled",
+        isCancelled: true,
+        image: null,
+        summary: "Seine River and historic boulevard routes cancelled due to schedule changes and route reorganizations.",
+        tags: ["European Route", "Suspended Itinerary", "Schedule Change"],
+        itinerary: [{ day: "Cancelled", detail: "European travel booking and Paris central stops suspended." }]
+      },
+      {
+        id: "liwliwa-batangas-2018",
+        year: "2018",
+        month: "Mid 2018",
+        title: "Liwliwa & Batangas",
+        location: "Zambales & Batangas, Philippines",
+        flag: "🇵🇭",
+        status: "Completed",
+        isCancelled: false,
+        image: null,
+        summary: "Pine tree surf beaches in Zambales coupled with coastal diving bays across Batangas shores.",
+        tags: ["Surf Coast", "Zambales", "Batangas Bays"],
+        itinerary: [
+          { day: "Phase 1", detail: "Liwliwa surf break coastline and coastal pine trail strolls." },
+          { day: "Phase 2", detail: "Batangas marine coral dive waters and oceanfront drive." }
+        ]
+      },
+      {
+        id: "dumaguete-siquijor-2018",
+        year: "2018",
+        month: "July",
+        title: "Dumaguete & Siquijor",
+        location: "Central Visayas, Philippines",
+        flag: "🇵🇭",
+        status: "Completed",
+        isCancelled: false,
+        image: null,
+        summary: "Rizal Boulevard sea promenade, Apo Island turtle sanctuaries, and Siquijor waterfall cascades.",
+        tags: ["Apo Island", "Cambugahay", "Mystic Island"],
+        itinerary: [
+          { day: "Phase 1", detail: "Dumaguete boulevard, silvanas trails, and Apo Island marine sanctuary." },
+          { day: "Phase 2", detail: "Siquijor coastal circuit, Cambugahay Falls, and century-old Balete tree." }
+        ]
+      },
+      {
+        id: "coron-2018",
+        year: "2018",
+        month: "September",
+        title: "Coron Return Expedition",
+        location: "Palawan, Philippines",
+        flag: "🇵🇭",
+        status: "Completed",
+        isCancelled: false,
+        image: null,
+        summary: "Crystal blue brackish lagoons of Kayangan Lake, Twin Lagoon cliffs, and World War II shipwrecks.",
+        tags: ["Kayangan Lake", "Twin Lagoon", "Shipwreck Reef"],
+        itinerary: [
+          { day: "Phase 1", detail: "Coron Island limestone lagoon hopping, Kayangan, and Barracuda Lake." },
+          { day: "Phase 2", detail: "Coral garden snorkeling and Malcapuya white sand beach." }
+        ]
+      },
+
+      /* --- 2019 --- */
+      {
+        id: "pico-de-loro-2019",
+        year: "2019",
+        month: "February",
+        title: "Pico de Loro Cove",
+        location: "Batangas, Philippines",
+        flag: "🇵🇭",
+        status: "Completed",
+        isCancelled: false,
+        image: null,
+        summary: "Coastal cove mountainsides, calm waters of Hamilo Coast, and forested seaside hiking.",
+        tags: ["Hamilo Coast", "Seaside Forest", "Batangas"],
+        itinerary: [{ day: "Phase 1", detail: "Cove perimeter walking tracks and marine eco-trail loops." }]
+      },
+      {
+        id: "mel-syd-2019",
+        year: "2019",
+        month: "March",
+        title: "Melbourne & Sydney Circuit",
+        location: "Australia",
+        flag: "🇦🇺",
+        status: "Completed",
+        isCancelled: false,
+        image: null,
+        summary: "Autumn in Victoria's parks and laneways before heading north to Sydney coastal lookouts.",
+        tags: ["Interstate Pass", "Harbour", "Urban Corridors"],
+        itinerary: [
+          { day: "Phase 1", detail: "Melbourne central culinary discovery and Yarra river walks." },
+          { day: "Phase 2", detail: "Sydney coastal paths and harbor lookouts." }
+        ]
+      },
+      {
+        id: "japan-2019",
+        year: "2019",
+        month: "May",
+        title: "Japan Early Summer",
+        location: "Japan",
+        flag: "🇯🇵",
+        status: "Completed",
+        isCancelled: false,
+        image: null,
+        summary: "Lush early summer alpine foliage, Kyoto ancient bamboo groves, and Osaka street food avenues.",
+        tags: ["Kansai", "Kyoto Arashiyama", "Dotonbori"],
+        itinerary: [{ day: "Phase 1", detail: "Kyoto bamboo forest, Fushimi Inari torii gates, and Osaka canal alleys." }]
+      },
+      {
+        id: "sydney-2019",
+        year: "2019",
+        month: "July",
+        title: "Sydney Mid-Year",
+        location: "New South Wales, Australia",
+        flag: "🇦🇺",
+        status: "Completed",
+        isCancelled: false,
+        image: null,
+        summary: "Brisk winter coastal headland walks along Bondi to Coogee and historic Rocks lanes.",
+        tags: ["Bondi to Coogee", "The Rocks", "Harbour Walk"],
+        itinerary: [{ day: "Phase 1", detail: "Clifftop ocean path between Bondi and Bronte, and ferry crossings." }]
+      },
+      {
+        id: "romblon-bora-2019",
+        year: "2019",
+        month: "October",
+        title: "Romblon & Boracay",
+        location: "Mimaropa & Western Visayas, Philippines",
+        flag: "🇵🇭",
+        status: "Completed",
+        isCancelled: false,
+        image: null,
+        summary: "Marble capital sandbars in Romblon paired with White Beach sunset sails in Boracay.",
+        tags: ["Bonbon Beach", "Marble Island", "White Beach"],
+        itinerary: [
+          { day: "Phase 1", detail: "Romblon sandbars, Bonbon Beach sandspit, and island crossings." },
+          { day: "Phase 2", detail: "Boracay reopened pristine coastal stretches and sunset sails." }
+        ]
+      },
+      {
+        id: "las-casas-2019",
+        year: "2019",
+        month: "Late 2019",
+        title: "Las Casas Filipinas de Acuzar",
+        location: "Bataan, Philippines",
+        flag: "🇵🇭",
+        status: "Completed",
+        isCancelled: false,
+        image: null,
+        summary: "Family heritage holiday exploring restored colonial stone mansions and heritage canals.",
+        tags: ["Family Journey", "Heritage Mansions", "Bataan Coast"],
+        itinerary: [{ day: "Phase 1", detail: "Colonial cobblestone streets, heritage architecture, and coastal walks." }]
+      },
+      {
+        id: "la-chevrerie-2019",
+        year: "2019",
+        month: "Mid 2019",
+        title: "La Chevrerie Resort",
+        location: "Anilao, Batangas, Philippines",
+        flag: "🇵🇭",
+        status: "Completed",
+        isCancelled: false,
+        image: null,
+        summary: "Relaxing Mother's Day seaside holiday along the rich diving coast of Anilao.",
+        tags: ["Mother's Day", "Anilao Coast", "Seaside Haven"],
+        itinerary: [{ day: "Phase 1", detail: "Coastal marine terraces, calm bay views, and family gathering." }]
+      },
+      {
+        id: "fukuoka-2019",
+        year: "2019",
+        month: "December",
+        title: "Fukuoka & Kyushu",
+        location: "Kyushu, Japan",
+        flag: "🇯🇵",
+        status: "Completed",
+        isCancelled: false,
+        image: null,
+        summary: "Winter hakata ramen food stalls (Yatai), canal city illuminations, and Kyushu shrines.",
+        tags: ["Yatai Stalls", "Hakata", "Kyushu Winter"],
+        itinerary: [{ day: "Phase 1", detail: "Hakata canal walks, Nakasu evening food stalls, and Dazaifu Tenmangu." }]
+      },
+
+      /* --- 2020 --- */
+      {
+        id: "siargao-2020",
+        year: "2020",
+        month: "February",
+        title: "Siargao Island",
+        location: "Surigao del Norte, Philippines",
+        flag: "🇵🇭",
+        status: "Completed",
+        isCancelled: false,
+        image: null,
+        summary: "Cloud 9 barrel breaks, coconut palm roads, and tidal rock pool expeditions.",
+        tags: ["Cloud 9", "Pacific Coast", "Island Way"],
+        itinerary: [
+          { day: "Phase 1", detail: "General Luna shoreline, boardwalk surf breaks, and coastal loops." },
+          { day: "Phase 2", detail: "Magpupungko tidal pools and Sugba Lagoon island transit." }
+        ]
+      },
+      {
+        id: "au-nz-2020",
+        year: "2020",
+        month: "Mid 2020",
+        title: "Australia – New Zealand Corridor",
+        location: "Australia / New Zealand",
+        flag: "🇳🇿",
+        status: "Cancelled",
+        isCancelled: true,
+        image: null,
+        summary: "Trans-Tasman route suspended due to international border closures during early pandemic emergency protocols.",
+        tags: ["Pandemic Disruption", "Trans-Tasman", "Border Closure"],
+        itinerary: [{ day: "Suspended", detail: "Trans-Tasman flight connection grounded under travel bans." }]
+      },
+      {
+        id: "bkk-sg-2020",
+        year: "2020",
+        month: "Mid 2020",
+        title: "Bangkok & Singapore Transit",
+        location: "Thailand / Singapore",
+        flag: "🇸🇬",
+        status: "Cancelled",
+        isCancelled: true,
+        image: null,
+        summary: "Southeast Asian cross-border loop cancelled due to international flight cancellations and quarantine orders.",
+        tags: ["Pandemic Disruption", "Southeast Asia", "Border Closure"],
+        itinerary: [{ day: "Suspended", detail: "Bangkok to Singapore flight connections cancelled." }]
+      },
+      {
+        id: "iloilo-bacolod-2020",
+        year: "2020",
+        month: "Mid 2020",
+        title: "Iloilo & Bacolod Passage",
+        location: "Western Visayas, Philippines",
+        flag: "🇵🇭",
+        status: "Cancelled",
+        isCancelled: true,
+        image: null,
+        summary: "Western Visayas inter-island ferry and heritage tour halted following domestic travel restrictions.",
+        tags: ["Pandemic Disruption", "Western Visayas", "Domestic Lockdowns"],
+        itinerary: [{ day: "Suspended", detail: "Guimaras Strait ferry transit and domestic inter-island routes grounded." }]
+      },
+      {
+        id: "japan-au-2020",
+        year: "2020",
+        month: "November",
+        title: "Japan & Australia Transit",
+        location: "Japan / Australia",
+        flag: "🇦🇺",
+        status: "Completed",
+        isCancelled: false,
+        image: null,
+        summary: "Intercontinental corridor transit connecting Japanese urban hubs and Australian arrivals.",
+        tags: ["Cross-Pacific", "Aviation", "Transit"],
+        itinerary: [{ day: "Phase 1", detail: "Terminal routing, regional stopovers, and arrival protocols." }]
+      },
+      {
+        id: "byron-bay-2020",
+        year: "2020",
+        month: "December",
+        title: "Byron Bay",
+        location: "New South Wales, Australia",
+        flag: "🇦🇺",
+        status: "Completed",
+        isCancelled: false,
+        image: null,
+        summary: "Cape Byron headland walks, easternmost lighthouse lookouts, and subtropical surf beaches.",
+        tags: ["Cape Byron", "Lighthouse", "Coastal"],
+        itinerary: [
+          { day: "Phase 1", detail: "Lighthouse track coastal loop and marine reserve sightings." },
+          { day: "Phase 2", detail: "Wategos Beach and regional hinterland escapes." }
+        ]
+      },
+
+      /* --- 2021 --- */
+      {
+        id: "bowral-2021",
+        year: "2021",
+        month: "April",
+        title: "Bowral & Southern Highlands",
+        location: "New South Wales, Australia",
+        flag: "🇦🇺",
+        status: "Completed",
+        isCancelled: false,
+        image: null,
+        summary: "Estate gardens, cool-climate countryside paths, and Southern Highlands village lanes.",
+        tags: ["Southern Highlands", "Cool Climate", "Heritage"],
+        itinerary: [{ day: "Phase 1", detail: "Country estate gardens, heritage stone avenues, and local orchards." }]
+      },
+      {
+        id: "bathurst-orange-2021",
+        year: "2021",
+        month: "June",
+        title: "Bathurst & Orange",
+        location: "Central Tablelands, Australia",
+        flag: "🇦🇺",
+        status: "Completed",
+        isCancelled: false,
+        image: null,
+        summary: "Winter inland tablelands, Mount Panorama circuits, and cool-climate vineyard trails.",
+        tags: ["Central Tablelands", "Mount Panorama", "Vineyards"],
+        itinerary: [
+          { day: "Phase 1", detail: "Bathurst heritage architecture and Mount Panorama summit." },
+          { day: "Phase 2", detail: "Orange volcanic soil vineyards and winter food trails." }
+        ]
+      },
+      {
+        id: "pinas-2021",
+        year: "2021",
+        month: "November",
+        title: "Philippines Year-End Return",
+        location: "Philippines",
+        flag: "🇵🇭",
+        status: "Completed",
+        isCancelled: false,
+        image: null,
+        summary: "Year-end return journey exploring regional island provinces and coastlines.",
+        tags: ["Archipelago", "Island Transit", "Homecoming"],
+        itinerary: [{ day: "Phase 1", detail: "Regional domestic transit, coastal visits, and province stays." }]
+      },
+
+      /* --- 2022 --- */
+      {
+        id: "brisbane-sunshine-2022",
+        year: "2022",
+        month: "February",
+        title: "Brisbane & Sunshine Coast",
+        location: "Queensland, Australia",
+        flag: "🇦🇺",
+        status: "Completed",
+        isCancelled: false,
+        image: null,
+        summary: "Subtropical city riverwalks paired with Noosa coastal national park headland tracks.",
+        tags: ["Noosa", "Riverwalk", "Headlands"],
+        itinerary: [
+          { day: "Phase 1", detail: "Brisbane South Bank river paths and Howard Smith Wharves." },
+          { day: "Phase 2", detail: "Sunshine Coast coastal cliff trails and Noosa bays." }
+        ]
+      },
+      {
+        id: "uluru-melbourne-2022",
+        year: "2022",
+        month: "April",
+        title: "Uluru & Melbourne",
+        location: "NT & Victoria, Australia",
+        flag: "🇦🇺",
+        status: "Completed",
+        isCancelled: false,
+        image: null,
+        summary: "Red Centre monolith sunrises and desert base trails followed by urban Melbourne coffee lanes.",
+        tags: ["Red Centre", "Uluru Base", "Melbourne"],
+        itinerary: [
+          { day: "Phase 1", detail: "Uluru base perimeter walk, desert dune sunsets, and Kata Tjuta." },
+          { day: "Phase 2", detail: "Melbourne inner-city culinary and cultural laneways." }
+        ]
+      },
+      {
+        id: "hunter-valley-2022",
+        year: "2022",
+        month: "April",
+        title: "Hunter Valley",
+        location: "New South Wales, Australia",
+        flag: "🇦🇺",
+        status: "Completed",
+        isCancelled: false,
+        image: null,
+        summary: "Semillon and Shiraz valley cellar doors, olive groves, and rolling Brokenback Range views.",
+        tags: ["Pokolbin", "Cellar Doors", "Brokenback"],
+        itinerary: [{ day: "Phase 1", detail: "Pokolbin cellar trails, boutique estates, and valley lookouts." }]
+      },
+      {
+        id: "gold-coast-2022",
+        year: "2022",
+        month: "July",
+        title: "Gold Coast",
+        location: "Queensland, Australia",
+        flag: "🇦🇺",
+        status: "Completed",
+        isCancelled: false,
+        image: null,
+        summary: "Broadbeach to Burleigh Heads point breaks, coastal dining, and oceanfront avenues.",
+        tags: ["Burleigh Point", "Surfers", "Broadbeach"],
+        itinerary: [{ day: "Phase 1", detail: "Burleigh Heads national park point track and coastal shores." }]
+      },
+      {
+        id: "boracay-2022",
+        year: "2022",
+        month: "October",
+        title: "Boracay Coast",
+        location: "Aklan, Philippines",
+        flag: "🇵🇭",
+        status: "Completed",
+        isCancelled: false,
+        image: null,
+        summary: "White Beach sunset paraw sailing, coral headlands, and powder sand shores.",
+        tags: ["White Beach", "Paraw Sailing", "Puka Beach"],
+        itinerary: [{ day: "Phase 1", detail: "Station 1 to 3 walks, swimming corridors, and coastal sunset sailing." }]
+      },
+      {
+        id: "el-nido-2022",
+        year: "2022",
+        month: "October",
+        title: "El Nido, Palawan",
+        location: "Palawan, Philippines",
+        flag: "🇵🇭",
+        status: "Completed",
+        isCancelled: false,
+        image: null,
+        summary: "Towering karst limestone cliffs, Big Lagoon kayak corridors, and hidden island coves.",
+        tags: ["Bacuit Bay", "Big Lagoon", "Karst Cliffs"],
+        itinerary: [
+          { day: "Phase 1", detail: "Bacuit Bay island hopping and hidden beach expeditions." },
+          { day: "Phase 2", detail: "Big Lagoon kayak passages and Nacpan beach stretch." }
+        ]
+      },
+
+      /* --- 2023 --- */
+      {
+        id: "puerto-princesa-2023",
+        year: "2023",
+        month: "April",
+        title: "Puerto Princesa",
+        location: "Palawan, Philippines",
+        flag: "🇵🇭",
+        status: "Completed",
+        isCancelled: false,
+        image: null,
+        summary: "Underground river subterranean cave waterways and Sabang coastline lookouts.",
+        tags: ["Subterranean", "Underground River", "Sabang"],
+        itinerary: [
+          { day: "Phase 1", detail: "Subterranean River National Park cave boat route." },
+          { day: "Phase 2", detail: "Honda Bay island corridors and mangrove boardwalks." }
+        ]
+      },
+      {
+        id: "hamilton-island-2023",
+        year: "2023",
+        month: "August",
+        title: "Hamilton Island & Whitsundays",
+        location: "Queensland, Australia",
+        flag: "🇦🇺",
+        status: "Completed",
+        isCancelled: false,
+        image: null,
+        summary: "Whitsunday silica sands of Whitehaven Beach, catamaran passages, and Catseye Bay.",
+        tags: ["Whitsundays", "Whitehaven", "Great Barrier Reef"],
+        itinerary: [
+          { day: "Phase 1", detail: "Whitehaven Beach catamaran sail and Hill Inlet lookouts." },
+          { day: "Phase 2", detail: "Passage Peak trail circuit and Catseye Bay coastal tracks." }
+        ]
+      },
+      {
+        id: "tokyo-sapporo-2023",
+        year: "2023",
+        month: "October",
+        title: "Tokyo & Sapporo",
+        location: "Japan",
+        flag: "🇯🇵",
+        status: "Completed",
+        isCancelled: false,
+        image: null,
+        summary: "Tokyo neon alleys and temple grounds followed by northern autumn landscapes in Hokkaido.",
+        tags: ["Tokyo", "Sapporo", "Hokkaido Autumn"],
+        itinerary: [
+          { day: "Phase 1", detail: "Shibuya, Shinjuku, and historic Asakusa routes in Tokyo." },
+          { day: "Phase 2", detail: "Hokkaido transit, Odori Park, and Sapporo culinary quarters." }
+        ]
+      },
+      {
+        id: "camiguin-2023",
+        year: "2023",
+        month: "October",
+        title: "Camiguin Island",
+        location: "Camiguin, Philippines",
+        flag: "🇵🇭",
+        status: "Completed",
+        isCancelled: false,
+        image: null,
+        summary: "White Island sandbar, Sunken Cemetery cross, cold springs, and volcanic slopes.",
+        tags: ["White Island", "Sunken Cemetery", "Volcanic Island"],
+        itinerary: [
+          { day: "Phase 1", detail: "White Island sandbar sunrise and Katibawasan Falls." },
+          { day: "Phase 2", detail: "Sunken Cemetery marine marker and Ardent hot spring pools." }
+        ]
+      },
+
+      /* --- 2024 --- */
+      {
+        id: "hk-macau-2024",
+        year: "2024",
+        month: "March",
+        title: "Hong Kong & Macau",
+        location: "HK & Macau",
+        flag: "🇭🇰",
+        status: "Completed",
+        isCancelled: false,
+        image: null,
+        summary: "City exploration across Victoria Harbour skyline, central tramways, and the Cotai Strip.",
+        tags: ["Victoria Peak", "Cotai Strip", "Star Ferry"],
+        itinerary: [
+          { day: "Phase 1", detail: "Hong Kong island walks, skyline lookouts, and harbor crossing." },
+          { day: "Phase 2", detail: "Ferry transit and historic Macau peninsula heritage corridors." }
+        ]
+      },
+      {
+        id: "fiji-2024",
+        year: "2024",
+        month: "August",
+        title: "Fiji Island Passage",
+        location: "Fiji",
+        flag: "🇫🇯",
+        status: "Completed",
+        isCancelled: false,
+        image: null,
+        summary: "Pacific reef lagoons, coastal boat crossings, and tropical relaxation across the islands.",
+        tags: ["Pacific Reef", "Island Haven", "Coral Coast"],
+        itinerary: [
+          { day: "Phase 1", detail: "Arrival, coastal trails, and reef lagoon exploration." },
+          { day: "Phase 2", detail: "Island water transfers and marine discovery." }
+        ]
+      },
+      {
+        id: "melbourne-2024",
+        year: "2024",
+        month: "September",
+        title: "Melbourne City & Lanes",
+        location: "Victoria, Australia",
+        flag: "🇦🇺",
+        status: "Completed",
+        isCancelled: false,
+        image: null,
+        summary: "Coffee laneway discovery, cultural galleries, and inner-urban walking circuits.",
+        tags: ["Laneways", "Yarra River", "Arts Precinct"],
+        itinerary: [{ day: "Phase 1", detail: "Central laneway circuits, arcades, and Yarra riverbank walks." }]
+      },
+      {
+        id: "europe-2024",
+        year: "2024",
+        month: "December",
+        title: "European Winter Corridor",
+        location: "Europe",
+        flag: "🇪🇺",
+        status: "Completed",
+        isCancelled: false,
+        image: null,
+        summary: "Winter seasonal markets, architectural walking loops, and heritage rail crossings.",
+        tags: ["Winter Rail", "Heritage", "Seasonal Markets"],
+        itinerary: [
+          { day: "Phase 1", detail: "Historic core exploration and seasonal winter markets." },
+          { day: "Phase 2", detail: "Inter-city rail connections and cultural museum landmarks." }
+        ]
+      },
+
+      /* --- 2025 --- */
+      {
+        id: "hobart-2025",
+        year: "2025",
+        month: "March",
+        title: "Hobart & Southern Waters",
+        location: "Tasmania, Australia",
+        flag: "🇦🇺",
+        status: "Completed",
+        isCancelled: false,
+        image: null,
+        summary: "Derwent riverfront wharves, Salamanca architecture, and Mount Wellington summit lookouts.",
+        tags: ["Derwent", "Salamanca", "Kunanyi"],
+        itinerary: [
+          { day: "Phase 1", detail: "Salamanca historic quarter, waterfront piers, and MONA ferryway." },
+          { day: "Phase 2", detail: "Mount Wellington (Kunanyi) lookout ridge and mountain descent." }
+        ]
+      },
+      {
+        id: "batanes-2025",
+        year: "2025",
+        month: "June",
+        title: "Batanes Archipelago",
+        location: "Batanes, Philippines",
+        flag: "🇵🇭",
+        status: "Completed",
+        isCancelled: false,
+        image: null,
+        summary: "Rolling coastal hills, traditional stone villages, and dramatic northern cliff edge lookouts.",
+        tags: ["Basco", "Marlboro Hills", "Ivatan Heritage"],
+        itinerary: [
+          { day: "Phase 1", detail: "North Batan lighthouse circuits and Basco coast." },
+          { day: "Phase 2", detail: "Racuh A Payaman (Marlboro Hills) and Mahatao viewpoints." },
+          { day: "Phase 3", detail: "Sabtang Island stone houses and coastal shores." }
+        ]
+      },
+      {
+        id: "sunshine-coast-2025",
+        year: "2025",
+        month: "August",
+        title: "Sunshine Coast",
+        location: "Queensland, Australia",
+        flag: "🇦🇺",
+        status: "Completed",
+        isCancelled: false,
+        image: null,
+        summary: "Coastal headlands, Noosa coastal trail walks, and hinterland mountain lookouts.",
+        tags: ["Noosa National Park", "Hinterland", "Coastal Walk"],
+        itinerary: [
+          { day: "Phase 1", detail: "Noosa National Park coastal track and coastal bays." },
+          { day: "Phase 2", detail: "Glass House Mountains hinterland loop and local markets." }
+        ]
+      },
+      {
+        id: "boracay-2025",
+        year: "2025",
+        month: "September",
+        title: "Boracay Coast",
+        location: "Aklan, Philippines",
+        flag: "🇵🇭",
+        status: "Completed",
+        isCancelled: false,
+        image: null,
+        summary: "White Beach stretches, tropical sunset cruises, and crystal blue shoreline trails.",
+        tags: ["White Beach", "Puka Shell", "Island Water"],
+        itinerary: [
+          { day: "Phase 1", detail: "White Beach station strolls and coastal lookout points." },
+          { day: "Phase 2", detail: "Northern island boat excursions and sunset sailing." }
+        ]
+      },
+      {
+        id: "vn-2025",
+        year: "2025",
+        month: "September",
+        title: "Hanoi & Tonkinese Alps",
+        location: "Vietnam",
+        flag: "🇻🇳",
+        status: "Completed",
+        isCancelled: false,
+        image: null,
+        summary: "Urban alleyway navigation in the Old Quarter followed by high-altitude rice terrace trekking in Sa Pa.",
+        tags: ["Muong Hoa", "Sa Pa", "Old Quarter"],
+        itinerary: [
+          { day: "Phase 1", detail: "Old Quarter culinary routes and Hoan Kiem perimeter." },
+          { day: "Phase 2", detail: "High-altitude Muong Hoa Valley mountain terracing." },
+          { day: "Phase 3", detail: "Sa Pa fog ridges and northern village paths." }
+        ]
+      },
+      {
+        id: "nz-2025",
+        year: "2025",
+        month: "September",
+        title: "Fiordland & Southern Lakes",
+        location: "New Zealand",
+        flag: "🇳🇿",
+        status: "Completed",
+        isCancelled: false,
+        image: null,
+        summary: "Glacial valley drives, sub-Antarctic alpine corridor navigation, and Lake Wakatipu circuits.",
+        tags: ["Milford Sound", "Queenstown", "Te Anau"],
+        itinerary: [
+          { day: "Phase 1", detail: "Auckland to Rotorua geothermal loops." },
+          { day: "Phase 2", detail: "Queenstown alpine lake ridges and mountain passes." },
+          { day: "Phase 3", detail: "Te Anau transit into the Milford Sound fiord corridor." }
+        ]
+      },
+      {
+        id: "nagoya-2025",
+        year: "2025",
+        month: "November",
+        title: "Nagoya & Chubu Region",
+        location: "Japan",
+        flag: "🇯🇵",
+        status: "Completed",
+        isCancelled: false,
+        image: null,
+        summary: "Historic castles, Chubu culinary corridors, and cultural railway connections.",
+        tags: ["Nagoya Castle", "Osu", "Chubu Corridor"],
+        itinerary: [
+          { day: "Phase 1", detail: "Nagoya Castle grounds and historic Honmaru Palace." },
+          { day: "Phase 2", detail: "Osu Kannon shopping arcade and Chubu culinary trails." }
+        ]
+      },
+      {
+        id: "thailand-2025",
+        year: "2025",
+        month: "December",
+        title: "Bangkok & Northern Thailand",
+        location: "Thailand",
+        flag: "🇹🇭",
+        status: "Completed",
+        isCancelled: false,
+        image: null,
+        summary: "Chao Phraya River routes in Bangkok moving north to Chiang Rai and Chiang Mai temples.",
+        tags: ["Bangkok", "Chiang Rai", "Chiang Mai"],
+        itinerary: [
+          { day: "Phase 1", detail: "Bangkok Chao Phraya riverway and Grand Palace." },
+          { day: "Phase 2", detail: "Chiang Rai White Temple and mountain borders." },
+          { day: "Phase 3", detail: "Chiang Mai Old City walls, evening bazaars, and mountain temples." }
+        ]
+      },
+
+      /* --- 2026 --- */
+      {
+        id: "pacific-2026",
+        year: "2026",
+        month: "April",
+        title: "East Coast Traverse",
+        location: "Australia",
+        flag: "🇦🇺",
+        status: "Completed",
+        isCancelled: false,
+        image: null,
+        summary: "Coastal headlands, Sea Cliff Bridge elevated passes, and temperate rainforest routes.",
+        tags: ["Sea Cliff", "Grand Pacific", "Escarpment"],
+        itinerary: [
+          { day: "Phase 1", detail: "Sea Cliff Bridge elevated cantilever drive." },
+          { day: "Phase 2", detail: "Sub-tropical forest paths and scenic ocean lookouts." }
+        ]
+      },
+      {
+        id: "launceston-2026",
+        year: "2026",
+        month: "October",
+        title: "Launceston & Tamar Valley",
+        location: "Tasmania",
+        flag: "🇦🇺",
+        status: "Planned",
+        isCancelled: false,
+        image: "images/IMG_0017.JPG",
+        summary: "Navigating Cataract Gorge basin, riverside reserves, and cool-climate vineyard routes.",
+        tags: ["Cataract Gorge", "Tamar Basin", "River Trail"],
+        itinerary: [
+          { day: "Phase 1", detail: "Cataract Gorge trail circuit and suspension bridge walk." },
+          { day: "Phase 2", detail: "Tamar Valley trail connections and cool-climate vineyard stops." },
+          { day: "Phase 3", detail: "Historic wharf walk and northern perimeter loops." }
+        ]
+      }
+    ];
+
+    const nodesContainer = document.getElementById("nodes-container");
+    const trackFill = document.getElementById("track-fill");
+    const timelineHeading = document.getElementById("timeline-heading");
+    const timelineMeta = document.getElementById("timeline-meta");
+    const grid = document.getElementById("grid");
+    const buttons = document.querySelectorAll(".segment-btn");
+    const countEl = document.getElementById("trip-count");
+    const countryRatioEl = document.getElementById("country-ratio");
+
+    const overlay = document.getElementById("modal-overlay");
+    const closeBtn = document.getElementById("modal-close");
+    const modalTitle = document.getElementById("modal-title");
+    const modalMeta = document.getElementById("modal-meta");
+    const modalDesc = document.getElementById("modal-desc");
+    const modalItinerary = document.getElementById("modal-itinerary");
+    const modalImgWrap = document.getElementById("modal-image-wrap");
+    const modalImg = document.getElementById("modal-image");
+
+    const drawerOverlay = document.getElementById("drawer-overlay");
+    const openDrawerBtn = document.getElementById("open-drawer");
+    const closeDrawerBtn = document.getElementById("close-drawer");
+    const drawerList = document.getElementById("drawer-list");
+
+    let currentYear = "all";
+    let activeTripId = null;
+
+    function updateTerritoryCount() {
+      const visitedCount = territories.filter(t => t.visited).length;
+      countryRatioEl.textContent = `${visitedCount} Explored`;
+    }
+
+    function buildTimelineRail(year) {
+      const activeList = year === "all" ? trips : trips.filter(t => t.year === year);
+      
+      if (year === "all") {
+        timelineHeading.textContent = "All Journeys Timeline";
+        timelineMeta.textContent = `Viewing all ${trips.length} milestones across years`;
+      } else {
+        timelineHeading.textContent = `${year} Expedition Timeline`;
+        timelineMeta.textContent = `${activeList.length} journey${activeList.length === 1 ? '' : 's'} recorded in ${year}`;
+      }
+
+      trackFill.style.width = "0%";
+      activeTripId = null;
+
+      nodesContainer.innerHTML = activeList.map((t, idx) => `
+        <button class="milestone-node ${t.isCancelled ? 'is-cancelled' : ''}" data-id="${t.id}" data-index="${idx}">
+          <span class="milestone-flag">${t.flag}</span>
+          <div class="milestone-dot"></div>
+          <div class="milestone-info">
+            <div class="milestone-date">${t.month} ${year === 'all' ? t.year : ''}</div>
+            <div class="milestone-loc">${t.location.split(',')[0]}</div>
+          </div>
+        </button>
+      `).join("");
+
+      document.querySelectorAll(".milestone-node").forEach(node => {
+        node.addEventListener("click", () => {
+          const id = node.dataset.id;
+          const index = parseInt(node.dataset.index, 10);
+          selectMilestone(id, index, activeList.length);
+        });
+      });
+    }
+
+    function selectMilestone(id, index, totalItems) {
+      activeTripId = id;
+      document.querySelectorAll(".milestone-node").forEach(n => n.classList.remove("active"));
+      const selectedNode = document.querySelector(`.milestone-node[data-id="${id}"]`);
+      if (selectedNode) selectedNode.classList.add("active");
+
+      const pct = totalItems > 1 ? (index / (totalItems - 1)) * 100 : 100;
+      trackFill.style.width = `calc(${pct}% * 0.94)`;
+
+      renderGrid(currentYear, id);
+    }
+
+    function renderGrid(yearScope, focusedId = null) {
+      grid.style.opacity = 0;
+
+      setTimeout(() => {
+        let displayList = yearScope === "all" ? trips : trips.filter(t => t.year === yearScope);
+        countEl.textContent = displayList.length;
+
+        grid.innerHTML = displayList.map(t => `
+          <article class="trip-card ${t.isCancelled ? 'is-cancelled' : ''} ${t.id === focusedId ? 'focused' : ''}" onclick="openModal('${t.id}')">
+            <div>
+              <div class="card-top">
+                <span class="card-meta">${t.flag} ${t.month} ${t.year}</span>
+                <span class="status-badge ${t.isCancelled ? 'cancelled-badge' : ''}">${t.status}</span>
+              </div>
+              <h2>${t.title}</h2>
+              <p>${t.summary}</p>
+              
+              ${t.image ? `
+                <div class="card-media">
+                  <img src="${t.image}" alt="${t.title}" onerror="this.parentElement.style.display='none'" loading="lazy" />
+                </div>
+              ` : ''}
+            </div>
+            <div>
+              <div class="card-footer">
+                <div class="tag-cluster">
+                  ${t.tags.map(tag => `<span>${tag}</span>`).join("")}
+                </div>
+                <div class="card-action">${t.isCancelled ? 'Notice ↗' : 'Details ↗'}</div>
+              </div>
+            </div>
+          </article>
+        `).join("");
+
+        grid.style.opacity = 1;
+      }, 150);
+    }
+
+    window.openModal = function(id) {
+      const trip = trips.find(t => t.id === id);
+      if (!trip) return;
+
+      modalMeta.textContent = `${trip.flag} ${trip.location} • ${trip.month} ${trip.year}`;
+      modalTitle.textContent = `${trip.title}`;
+      modalDesc.textContent = trip.summary;
+
+      if (trip.image) {
+        modalImg.src = trip.image;
+        modalImg.alt = trip.title;
+        modalImgWrap.style.display = "block";
+      } else {
+        modalImgWrap.style.display = "none";
+      }
+
+      modalItinerary.innerHTML = trip.itinerary.map(item => `
+        <li>
+          <span class="itinerary-day ${trip.isCancelled ? 'cancelled-tag' : ''}">${item.day}</span>
+          <span>${item.detail}</span>
+        </li>
+      `).join("");
+
+      overlay.classList.add("open");
+    };
+
+    function closeModal() {
+      overlay.classList.remove("open");
+    }
+
+    closeBtn.addEventListener("click", closeModal);
+    overlay.addEventListener("click", (e) => {
+      if (e.target === overlay) closeModal();
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        closeModal();
+        drawerOverlay.classList.remove("open");
+      }
+    });
+
+    function renderDrawer() {
+      drawerList.innerHTML = territories.map(t => `
+        <div class="drawer-pill-item ${t.visited ? 'visited' : 'not-visited'}">
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <span style="font-size: 1.4rem;">${t.flag}</span>
+            <span style="font-size: 0.9rem; font-weight: 500;">${t.name}</span>
+          </div>
+          <span style="font-size: 0.72rem; font-weight: 600; color: ${t.visited ? 'var(--visited-green)' : 'var(--text-secondary)'};">
+            ${t.visited ? 'Explored ✓' : 'Wishlist'}
+          </span>
+        </div>
+      `).join("");
+    }
+
+    openDrawerBtn.addEventListener("click", () => {
+      renderDrawer();
+      drawerOverlay.classList.add("open");
+    });
+
+    closeDrawerBtn.addEventListener("click", () => {
+      drawerOverlay.classList.remove("open");
+    });
+
+    drawerOverlay.addEventListener("click", (e) => {
+      if (e.target === drawerOverlay) drawerOverlay.classList.remove("open");
+    });
+
+    buttons.forEach(btn => {
+      btn.addEventListener("click", () => {
+        buttons.forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+
+        currentYear = btn.dataset.year;
+        buildTimelineRail(currentYear);
+        renderGrid(currentYear);
+      });
+    });
+
+    updateTerritoryCount();
+    buildTimelineRail("all");
+    renderGrid("all");
+
+    // Ambient Phoenix Embers Animation
+    (function initPhoenixEmbers() {
+      const canvas = document.getElementById("phoenix-embers");
+      if (!canvas) return;
+      const ctx = canvas.getContext("2d");
+      let width = (canvas.width = window.innerWidth);
+      let height = (canvas.height = window.innerHeight);
+
+      window.addEventListener("resize", () => {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+      });
+
+      const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      if (prefersReducedMotion) return;
+
+      const emberCount = Math.min(36, Math.floor(window.innerWidth / 32));
+      const embers = [];
+
+      class Ember {
+        constructor() {
+          this.reset(true);
+        }
+        reset(initial = false) {
+          this.x = Math.random() * width;
+          this.y = initial ? Math.random() * height : height + 10;
+          this.size = Math.random() * 2.2 + 0.8;
+          this.speedY = Math.random() * 0.5 + 0.25;
+          this.speedX = (Math.random() - 0.5) * 0.35;
+          this.opacity = Math.random() * 0.45 + 0.15;
+          this.maxOpacity = this.opacity;
+          this.hue = Math.random() > 0.4 ? (Math.random() * 25 + 15) : (Math.random() * 15 + 40);
+          this.swaySpeed = Math.random() * 0.02 + 0.01;
+          this.swayAngle = Math.random() * Math.PI * 2;
+        }
+        update() {
+          this.y -= this.speedY;
+          this.swayAngle += this.swaySpeed;
+          this.x += this.speedX + Math.sin(this.swayAngle) * 0.35;
+
+          if (this.y < height * 0.18) {
+            this.opacity = (this.y / (height * 0.18)) * this.maxOpacity;
+          }
+
+          if (this.y < -10 || this.x < -10 || this.x > width + 10) {
+            this.reset();
+          }
+        }
+        draw() {
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+          ctx.fillStyle = `hsla(${this.hue}, 95%, 62%, ${this.opacity})`;
+          ctx.shadowBlur = this.size * 3;
+          ctx.shadowColor = `hsla(${this.hue}, 100%, 55%, 0.6)`;
+          ctx.fill();
+        }
+      }
+
+      for (let i = 0; i < emberCount; i++) {
+        embers.push(new Ember());
+      }
+
+      let animationId;
+      function animate() {
+        ctx.clearRect(0, 0, width, height);
+        for (let i = 0; i < embers.length; i++) {
+          embers[i].update();
+          embers[i].draw();
+        }
+        animationId = requestAnimationFrame(animate);
+      }
+
+      document.addEventListener("visibilitychange", () => {
+        if (document.hidden) {
+          cancelAnimationFrame(animationId);
+        } else {
+          animate();
+        }
+      });
+
+      animate();
+    })();
+  </script>
+</body>
+</html>

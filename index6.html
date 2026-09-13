@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chronicle — Field Records</title>
+  <style>
+    :root {
+      --bg: #000000;
+      --surface-1: #121214;
+      --surface-2: #1c1c1e;
+      --surface-hover: #262629;
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-focus: rgba(255, 255, 255, 0.22);
+      --text-primary: #f5f5f7;
+      --text-secondary: #86868b;
+      --accent: #2997ff;
+      --accent-glow: rgba(41, 151, 255, 0.35);
+      --font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text-primary);
+      font-family: var(--font);
+      line-height: 1.45;
+      letter-spacing: -0.015em;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .ambient-glow {
+      position: fixed;
+      top: -15%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 800px;
+      height: 450px;
+      background: radial-gradient(circle, rgba(41, 151, 255, 0.12) 0%, rgba(0, 0, 0, 0) 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Global Nav */
+    header.global-nav {
+      position: sticky;
+      top: 0;
+      z-index: 90;
+      background: rgba(0, 0, 0, 0.78);
+      backdrop-filter: saturate(180%) blur(20px);
+      -webkit-backdrop-filter: saturate(180%) blur(20px);
+      border-bottom: 1px solid var(--border-subtle);
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 2rem;
+    }
+
+    .brand {
+      font-size: 0.95rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+
+    .telemetry {
+      display: flex;
+      gap: 1.5rem;
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+
+    .telemetry span strong {
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+
+    main {
+      position: relative;
+      z-index: 1;
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 4.5rem 1.5rem 8rem;
+    }
+
+    /* Hero */
+    .hero {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+
+    .hero-eyebrow {
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--accent);
+      margin-bottom: 0.75rem;
+      display: inline-block;
+    }
+
+    .hero h1 {
+      font-size: 3.6rem;
+      font-weight: 600;
+      letter-spacing: -0.03em;
+      line-height: 1.05;
+      margin-bottom: 0.85rem;
+      background: linear-gradient(180deg, #ffffff 40%, rgba(255, 255, 255, 0.65) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero p {
+      font-size: 1.2rem;
+      color: var(--text-secondary);
+      max-width: 540px;
+      margin: 0 auto;
+    }
+
+    /* Year Selector Tabs */
+    .filter-shelf {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 2.5rem;
+    }
+
+    .segmented-control {
+      background: var(--surface-1);
+      border: 1px solid var(--border-subtle);
+      border-radius: 999px;
+      padding: 4px;
+      display: flex;
+      gap: 4px;
+    }
+
+    .segment-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      font-family: inherit;
+      font-size: 0.85rem;
+      font-weight: 500;
+      padding: 0.45rem 1.35rem;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+
+    .segment-btn:hover {
+      color: var(--text-primary);
+    }
+
+    .segment-btn.active {
+      background: var(--surface-2);
+      color: var(--text-primary);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--border-focus);
+    }
+
+    /* Dynamic Interactive Timeline Rail */
+    .timeline-rail-wrapper {
+      background: var(--surface-1);
+      border: 1px solid var(--border-subtle);
+      border-radius: 24px;
+      padding: 2.25rem 2rem 2.25rem;
+      margin-bottom: 3.5rem;
+      position: relative;
+    }
+
+    .timeline-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+
+    .timeline-header h3 {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-secondary);
+      font-weight: 600;
+    }
+
+    .timeline-meta-label {
+      font-size: 0.8rem;
+      color: var(--accent);
+      font-weight: 500;
+    }
+
+    .timeline-scrubber {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 1rem;
+      min-height: 90px;
+    }
+
+    .timeline-track {
+      position: absolute;
+      top: 14px;
+      left: 2rem;
+      right: 2rem;
+      height: 2px;
+      background: var(--border-subtle);
+      z-index: 1;
+    }
+
+    .timeline-track-fill {
+      position: absolute;
+      top: 14px;
+      left: 2rem;
+      height: 2px;
+      width: 0%;
+      background: var(--accent);
+      box-shadow: 0 0 10px var(--accent-glow);
+      z-index: 1;
+      transition: width 0.35s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+
+    .milestone-node {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: pointer;
+      background: none;
+      border: none;
+      outline: none;
+      transition: transform 0.25s ease;
+    }
+
+    .milestone-dot {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: var(--surface-2);
+      border: 2px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.25s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+
+    .milestone-dot::after {
+      content: '';
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--text-secondary);
+      transition: all 0.25s ease;
+    }
+
+    .milestone-node:hover .milestone-dot {
+      border-color: var(--accent);
+      transform: scale(1.15);
+    }
+
+    .milestone-node.active .milestone-dot {
+      background: #000;
+      border-color: var(--accent);
+      box-shadow: 0 0 14px var(--accent-glow);
+      transform: scale(1.2);
+    }
+
+    .milestone-node.active .milestone-dot::after {
+      background: var(--accent);
+      width: 10px;
+      height: 10px;
+    }
+
+    .milestone-info {
+      margin-top: 0.75rem;
+      text-align: center;
+    }
+
+    .milestone-date {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .milestone-loc {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--text-primary);
+      margin-top: 2px;
+      max-width: 140px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .milestone-node.active .milestone-date {
+      color: var(--accent);
+    }
+
+    /* Bento Grid */
+    .trip-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 1.5rem;
+      transition: opacity 0.2s ease;
+    }
+
+    .trip-card {
+      background: var(--surface-1);
+      border: 1px solid var(--border-subtle);
+      border-radius: 24px;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 280px;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1), 
+                  border-color 0.3s ease, 
+                  background-color 0.3s ease;
+    }
+
+    .trip-card:hover {
+      transform: translateY(-4px);
+      background: var(--surface-2);
+      border-color: var(--border-focus);
+    }
+
+    .trip-card.focused {
+      border-color: var(--accent);
+      box-shadow: 0 0 20px rgba(41, 151, 255, 0.15);
+    }
+
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 1rem;
+    }
+
+    .card-meta {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+    }
+
+    .status-badge {
+      font-size: 0.7rem;
+      font-weight: 500;
+      padding: 0.2rem 0.6rem;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-secondary);
+      border: 1px solid var(--border-subtle);
+    }
+
+    .trip-card h2 {
+      font-size: 1.6rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      margin-bottom: 0.75rem;
+    }
+
+    /* Photo Component */
+    .card-media {
+      width: 100%;
+      height: 190px;
+      border-radius: 16px;
+      overflow: hidden;
+      margin: 1.25rem 0;
+      background: var(--surface-2);
+      border: 1px solid var(--border-subtle);
+    }
+
+    .card-media img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+
+    .trip-card:hover .card-media img {
+      transform: scale(1.04);
+    }
+
+    .trip-card p {
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    .card-footer {
+      margin-top: 1.75rem;
+      padding-top: 1.25rem;
+      border-top: 1px solid var(--border-subtle);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .tag-cluster {
+      display: flex;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+    }
+
+    .tag-cluster span {
+      font-size: 0.75rem;
+      background: rgba(255, 255, 255, 0.04);
+      padding: 0.2rem 0.55rem;
+      border-radius: 6px;
+      color: var(--text-secondary);
+    }
+
+    .card-action {
+      font-size: 0.8rem;
+      color: var(--accent);
+      font-weight: 500;
+    }
+
+    /* Modal Inspector */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+
+    .modal-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-sheet {
+      background: var(--surface-1);
+      border: 1px solid var(--border-focus);
+      width: 100%;
+      max-width: 600px;
+      border-radius: 28px;
+      padding: 2.5rem;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7);
+      transform: scale(0.96);
+      transition: transform 0.25s cubic-bezier(0.25, 1, 0.5, 1);
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-overlay.open .modal-sheet {
+      transform: scale(1);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 1.25rem;
+    }
+
+    .modal-header h3 {
+      font-size: 1.8rem;
+      letter-spacing: -0.02em;
+    }
+
+    .close-btn {
+      background: var(--surface-2);
+      border: none;
+      color: var(--text-secondary);
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      transition: color 0.2s ease;
+    }
+
+    .close-btn:hover {
+      color: var(--text-primary);
+    }
+
+    .modal-media {
+      width: 100%;
+      height: 240px;
+      border-radius: 18px;
+      overflow: hidden;
+      margin-bottom: 1.5rem;
+      background: var(--surface-2);
+      border: 1px solid var(--border-subtle);
+    }
+
+    .modal-media img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .modal-body {
+      color: var(--text-secondary);
+      font-size: 1rem;
+      line-height: 1.6;
+    }
+
+    .itinerary-list {
+      list-style: none;
+      margin-top: 1.5rem;
+    }
+
+    .itinerary-list li {
+      padding: 0.75rem 0;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      gap: 1rem;
+    }
+
+    .itinerary-list li:last-child {
+      border-bottom: none;
+    }
+
+    .itinerary-day {
+      color: var(--accent);
+      font-weight: 600;
+      font-size: 0.8rem;
+      width: 65px;
+      flex-shrink: 0;
+      text-transform: uppercase;
+    }
+
+    @media screen and (max-width: 768px) {
+      .hero h1 {
+        font-size: 2.6rem;
+      }
+      .telemetry {
+        display: none;
+      }
+      .timeline-scrubber {
+        overflow-x: auto;
+        justify-content: flex-start;
+        gap: 2.5rem;
+        padding-bottom: 1rem;
+      }
+      .timeline-track, .timeline-track-fill {
+        display: none;
+      }
+      .modal-sheet {
+        padding: 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="ambient-glow"></div>
+
+  <header class="global-nav">
+    <div class="brand">Passport</div>
+    <div class="telemetry">
+      <span>Logged: <strong id="trip-count">4</strong></span>
+      <span>Rate: <strong>2–3 / Year</strong></span>
+      <span>Coverage: <strong>Oceania & APAC</strong></span>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <span class="hero-eyebrow">Archival Database</span>
+      <h1>Every stop.<br />Engineered in sequence.</h1>
+      <p>Select a year to isolate that season's itinerary rail and timeline milestones.</p>
+    </section>
+
+    <div class="filter-shelf">
+      <div class="segmented-control" role="tablist">
+        <button class="segment-btn active" data-year="all">All Years</button>
+        <button class="segment-btn" data-year="2026">2026</button>
+        <button class="segment-btn" data-year="2025">2025</button>
+      </div>
+    </div>
+
+    <section class="timeline-rail-wrapper">
+      <div class="timeline-header">
+        <h3 id="timeline-heading">All Journeys Timeline</h3>
+        <span class="timeline-meta-label" id="timeline-meta">Viewing full chronology</span>
+      </div>
+      <div class="timeline-scrubber" id="timeline-scrubber">
+        <div class="timeline-track"></div>
+        <div class="timeline-track-fill" id="track-fill"></div>
+        <div id="nodes-container" style="display: contents;"></div>
+      </div>
+    </section>
+
+    <section class="trip-grid" id="grid"></section>
+  </main>
+
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <div>
+          <span class="card-meta" id="modal-meta"></span>
+          <h3 id="modal-title"></h3>
+        </div>
+        <button class="close-btn" id="modal-close">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-media" id="modal-image-wrap" style="display: none;">
+          <img id="modal-image" src="" alt="" />
+        </div>
+        <p id="modal-desc"></p>
+        <ul class="itinerary-list" id="modal-itinerary"></ul>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const trips = [
+      {
+        id: "vn-2025",
+        year: "2025",
+        month: "Sep",
+        season: "Autumn",
+        title: "Hanoi & Tonkinese Alps",
+        location: "Vietnam",
+        status: "Completed",
+        image: null,
+        summary: "Urban alleyway navigation in the Old Quarter followed by high-altitude rice terrace trekking in Sa Pa.",
+        tags: ["Muong Hoa", "Sa Pa", "Old Quarter"],
+        itinerary: [
+          { day: "Stage 1", detail: "Old Quarter culinary routes and Hoan Kiem perimeter." },
+          { day: "Stage 2", detail: "High-altitude Muong Hoa Valley mountain terracing." },
+          { day: "Stage 3", detail: "Sa Pa fog ridges and northern village paths." }
+        ]
+      },
+      {
+        id: "nz-2025",
+        year: "2025",
+        month: "Sep",
+        season: "Spring",
+        title: "Fiordland & Southern Lakes",
+        location: "New Zealand",
+        status: "Completed",
+        image: null,
+        summary: "Glacial valley drives, sub-Antarctic alpine corridor navigation, and Lake Wakatipu circuits.",
+        tags: ["Milford Sound", "Queenstown", "Te Anau"],
+        itinerary: [
+          { day: "Stage 1", detail: "Auckland to Rotorua geothermal loops." },
+          { day: "Stage 2", detail: "Queenstown alpine lake ridges and mountain passes." },
+          { day: "Stage 3", detail: "Te Anau transit into the Milford Sound fiord corridor." }
+        ]
+      },
+      {
+        id: "pacific-2026",
+        year: "2026",
+        month: "Apr",
+        season: "Autumn",
+        title: "East Coast Traverse",
+        location: "Australia",
+        status: "Completed",
+        image: null,
+        summary: "Coastal headlands, Sea Cliff Bridge elevated passes, and temperate rainforest routes.",
+        tags: ["Sea Cliff", "Grand Pacific", "Escarpment"],
+        itinerary: [
+          { day: "Stage 1", detail: "Sea Cliff Bridge elevated cantilever drive." },
+          { day: "Stage 2", detail: "Sub-tropical forest paths and scenic ocean lookouts." }
+        ]
+      },
+      {
+        id: "launceston-2026",
+        year: "2026",
+        month: "Oct",
+        season: "Spring",
+        title: "Launceston & Tamar Valley",
+        location: "Tasmania",
+        status: "Planned",
+        image: "images/IMG_0017.JPG",
+        summary: "Navigating Cataract Gorge basin, riverside reserves, and cool-climate vineyard routes.",
+        tags: ["Cataract Gorge", "Tamar Basin", "River Trail"],
+        itinerary: [
+          { day: "Stage 1", detail: "Cataract Gorge trail circuit and suspension bridge walk." },
+          { day: "Stage 2", detail: "Tamar Valley trail connections and cool-climate vineyard stops." },
+          { day: "Stage 3", detail: "Historic wharf walk and northern perimeter loops." }
+        ]
+      }
+    ];
+
+    const nodesContainer = document.getElementById("nodes-container");
+    const trackFill = document.getElementById("track-fill");
+    const timelineHeading = document.getElementById("timeline-heading");
+    const timelineMeta = document.getElementById("timeline-meta");
+    const grid = document.getElementById("grid");
+    const buttons = document.querySelectorAll(".segment-btn");
+    const countEl = document.getElementById("trip-count");
+
+    const overlay = document.getElementById("modal-overlay");
+    const closeBtn = document.getElementById("modal-close");
+    const modalTitle = document.getElementById("modal-title");
+    const modalMeta = document.getElementById("modal-meta");
+    const modalDesc = document.getElementById("modal-desc");
+    const modalItinerary = document.getElementById("modal-itinerary");
+    const modalImgWrap = document.getElementById("modal-image-wrap");
+    const modalImg = document.getElementById("modal-image");
+
+    let currentYear = "all";
+    let activeTripId = null;
+
+    function buildTimelineRail(year) {
+      const activeList = year === "all" ? trips : trips.filter(t => t.year === year);
+      
+      if (year === "all") {
+        timelineHeading.textContent = "All Journeys Timeline";
+        timelineMeta.textContent = `Viewing all ${trips.length} milestones across years`;
+      } else {
+        timelineHeading.textContent = `${year} Expedition Timeline`;
+        timelineMeta.textContent = `${activeList.length} journeys recorded in ${year}`;
+      }
+
+      trackFill.style.width = "0%";
+      activeTripId = null;
+
+      nodesContainer.innerHTML = activeList.map((t, idx) => `
+        <button class="milestone-node" data-id="${t.id}" data-index="${idx}">
+          <div class="milestone-dot"></div>
+          <div class="milestone-info">
+            <div class="milestone-date">${t.month} ${t.year}</div>
+            <div class="milestone-loc">${t.location}</div>
+          </div>
+        </button>
+      `).join("");
+
+      document.querySelectorAll(".milestone-node").forEach(node => {
+        node.addEventListener("click", () => {
+          const id = node.dataset.id;
+          const index = parseInt(node.dataset.index, 10);
+          selectMilestone(id, index, activeList.length);
+        });
+      });
+    }
+
+    function selectMilestone(id, index, totalItems) {
+      activeTripId = id;
+      document.querySelectorAll(".milestone-node").forEach(n => n.classList.remove("active"));
+      const selectedNode = document.querySelector(`.milestone-node[data-id="${id}"]`);
+      if (selectedNode) selectedNode.classList.add("active");
+
+      const pct = totalItems > 1 ? (index / (totalItems - 1)) * 100 : 100;
+      trackFill.style.width = `calc(${pct}% * 0.94)`;
+
+      renderGrid(currentYear, id);
+    }
+
+    function renderGrid(yearScope, focusedId = null) {
+      grid.style.opacity = 0;
+
+      setTimeout(() => {
+        let displayList = yearScope === "all" ? trips : trips.filter(t => t.year === yearScope);
+        countEl.textContent = displayList.length;
+
+        grid.innerHTML = displayList.map(t => `
+          <article class="trip-card ${t.id === focusedId ? 'focused' : ''}" onclick="openModal('${t.id}')">
+            <div>
+              <div class="card-top">
+                <span class="card-meta">${t.month} ${t.year} • ${t.season}</span>
+                <span class="status-badge">${t.status}</span>
+              </div>
+              <h2>${t.title}</h2>
+              <p>${t.summary}</p>
+              
+              ${t.image ? `
+                <div class="card-media">
+                  <img src="${t.image}" alt="${t.title}" onerror="this.parentElement.style.display='none'" loading="lazy" />
+                </div>
+              ` : ''}
+            </div>
+            <div>
+              <div class="card-footer">
+                <div class="tag-cluster">
+                  ${t.tags.map(tag => `<span>${tag}</span>`).join("")}
+                </div>
+                <div class="card-action">Details ↗</div>
+              </div>
+            </div>
+          </article>
+        `).join("");
+
+        grid.style.opacity = 1;
+      }, 150);
+    }
+
+    window.openModal = function(id) {
+      const trip = trips.find(t => t.id === id);
+      if (!trip) return;
+
+      modalMeta.textContent = `${trip.location} • ${trip.month} ${trip.year}`;
+      modalTitle.textContent = trip.title;
+      modalDesc.textContent = trip.summary;
+
+      if (trip.image) {
+        modalImg.src = trip.image;
+        modalImg.alt = trip.title;
+        modalImgWrap.style.display = "block";
+      } else {
+        modalImgWrap.style.display = "none";
+      }
+
+      modalItinerary.innerHTML = trip.itinerary.map(item => `
+        <li>
+          <span class="itinerary-day">${item.day}</span>
+          <span>${item.detail}</span>
+        </li>
+      `).join("");
+
+      overlay.classList.add("open");
+    };
+
+    function closeModal() {
+      overlay.classList.remove("open");
+    }
+
+    closeBtn.addEventListener("click", closeModal);
+    overlay.addEventListener("click", (e) => {
+      if (e.target === overlay) closeModal();
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") closeModal();
+    });
+
+    buttons.forEach(btn => {
+      btn.addEventListener("click", () => {
+        buttons.forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+
+        currentYear = btn.dataset.year;
+        buildTimelineRail(currentYear);
+        renderGrid(currentYear);
+      });
+    });
+
+    buildTimelineRail("all");
+    renderGrid("all");
+  </script>
+</body>
+</html>
